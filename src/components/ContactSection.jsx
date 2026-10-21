@@ -4,7 +4,7 @@ import { MapPin, Phone, Mail, Clock, Send, ShieldAlert, CheckCircle, RefreshCw }
 import { companyData } from '../data/companyData';
 
 // Backend API base URL — points to local dev server; override in production with env var
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 
 export default function ContactSection({ onFormStart, onFormSuccess, onFormError }) {
 // State for form fields
