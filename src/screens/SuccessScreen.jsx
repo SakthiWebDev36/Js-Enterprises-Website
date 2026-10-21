@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Download, Home, Phone, ShieldCheck, ArrowRight, Clock, FileText, Check } from 'lucide-react';
+import { CheckCircle2, Download, Home, Phone, ShieldCheck, ArrowRight, Clock, FileText, Check, FileDown, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { generateConsultationPdf } from '../utils/generatePdfReceipt';
 
 export default function SuccessScreen({ ticketData, onReturnHome }) {
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
   useEffect(() => {
     // Elegant celebratory burst
     try {
@@ -20,42 +23,15 @@ export default function SuccessScreen({ ticketData, onReturnHome }) {
     }
   }, []);
 
-  const handleDownloadSummary = () => {
-    const summaryText = `
-=========================================
-  JS ENTERPRISES - FIRE SAFETY CONSULTATION
-  Official Engineering Request Ticket
-=========================================
-Reference Ticket ID: ${ticketData?.refId || 'JSE-748921'}
-Date & Time        : ${ticketData?.timestamp || new Date().toLocaleString()}
-Primary Contact    : ${ticketData?.name || 'Authorized Client'}
-Company / Facility : ${ticketData?.company || 'N/A'}
-Phone Number       : ${ticketData?.phone || '+91 99416 46332'}
-Email Address      : ${ticketData?.email || 'N/A'}
-Service Requested  : ${ticketData?.service || 'Fire Extinguishers'}
-Dispatch Station   : Padi Hub Desk, Chennai - 600 055
-
-PROJECT SCOPE / REQUIREMENTS:
-${ticketData?.scope || 'Site inspection & compliance review.'}
-
-NEXT OPERATIONAL STEPS:
-1. Technical team review within 2 business hours.
-2. Field engineer site inspection appointment scheduled.
-3. Statutory NBC & TNFRS compliance report prepared.
-
-Emergency Hotline : +91 99416 46332 / +91 99414 53527
-Official Email    : jsbsafety@gmail.com
-Address           : No. 16/35, Kamarajar Street, Srinivasa Nagar, Padi, Chennai - 600 055
-=========================================
-    `.trim();
-
-    const blob = new Blob([summaryText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `JS-Enterprises-Consultation-${ticketData?.refId || 'Request'}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadPdf = async () => {
+    try {
+      setDownloadingPdf(true);
+      await generateConsultationPdf(ticketData);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const projectStages = [
@@ -187,11 +163,21 @@ Address           : No. 16/35, Kamarajar Street, Srinivasa Nagar, Padi, Chennai 
             </button>
 
             <button
-              onClick={handleDownloadSummary}
-              className="px-6 py-3.5 rounded-xl bg-[#080B11] hover:bg-surfaceLight border border-surfaceBorder text-gray-200 font-medium text-sm transition-all flex items-center gap-2"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="px-6 py-3.5 rounded-xl bg-[#080B11] hover:bg-surfaceLight border border-surfaceBorder hover:border-fire/50 text-gray-200 hover:text-white font-medium text-sm transition-all flex items-center gap-2 active:scale-95 disabled:opacity-60 shadow-lg"
             >
-              <Download className="w-4 h-4 text-fire" />
-              <span>Download Consultation Summary</span>
+              {downloadingPdf ? (
+                <>
+                  <Loader2 className="w-4 h-4 text-fire animate-spin" />
+                  <span>Generating Official PDF...</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4 text-fire" />
+                  <span>Download Official PDF Receipt</span>
+                </>
+              )}
             </button>
           </div>
 

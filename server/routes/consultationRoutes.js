@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Consultation from '../models/Consultation.js';
 
 const router = express.Router();
@@ -9,6 +10,15 @@ const router = express.Router();
 ───────────────────────────────────────────── */
 router.post('/', async (req, res) => {
   try {
+    // Fast check: verify database is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database is currently connecting. Please ensure your current IP is whitelisted in MongoDB Atlas Network Access (or set to 0.0.0.0/0).',
+        code: 'DB_DISCONNECTED'
+      });
+    }
+
     const { name, company, phone, email, service, scope } = req.body;
 
     // Basic required field validation
