@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Clock, Send, ShieldAlert, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
+// Backend API base URL — points to local dev server; override in production with env var
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function ContactSection({ onFormSuccess, onFormError }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -25,44 +28,73 @@ export default function ContactSection({ onFormSuccess, onFormError }) {
     setErrorMsg('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Simple honest client-side validation
+
+    // Client-side validation
     if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim() || !formData.scope.trim()) {
       setErrorMsg('Please complete all required fields before dispatching.');
       return;
     }
 
     setSubmitting(true);
+    setErrorMsg('');
 
-    // Realistic asynchronous operation
-    setTimeout(() => {
-      setSubmitting(false);
-
-      if (simulateError) {
-        // Trigger Figma Error Screen with retry hook
+    // Simulate network error for testing Figma Error Screen
+    if (simulateError) {
+      setTimeout(() => {
+        setSubmitting(false);
         onFormError({
           errorType: 'DISPATCH_TIMEOUT',
           message: 'Primary telemetry route timed out during emergency dispatch request.',
           retryPayload: formData,
         });
-      } else {
-        // Generate genuine reference ticket
-        const refId = `JSE-${Math.floor(100000 + Math.random() * 900000)}`;
-        // Trigger Figma Success Screen
-        onFormSuccess({
-          refId,
-          name: formData.name,
-          company: formData.company || 'Not Specified',
-          phone: formData.phone,
-          email: formData.email,
+      }, 1200);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/consultations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          company: formData.company.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim(),
           service: formData.service,
-          scope: formData.scope,
-          timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
-        });
+          scope: formData.scope.trim(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Submission failed. Please try again.');
       }
-    }, 1200);
+
+      // Real success — trigger Figma Success Screen with server-returned data
+      onFormSuccess({
+        refId: result.data.refId,
+        name: result.data.name,
+        company: result.data.company || 'Not Specified',
+        phone: result.data.phone,
+        email: result.data.email,
+        service: result.data.service,
+        scope: result.data.scope,
+        timestamp: new Date(result.data.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      });
+
+    } catch (err) {
+      // Network failure or server error → Figma Error Screen
+      onFormError({
+        errorType: 'NETWORK_ERROR',
+        message: err.message || 'Unable to reach the server. Please try again or call us directly.',
+        retryPayload: formData,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
