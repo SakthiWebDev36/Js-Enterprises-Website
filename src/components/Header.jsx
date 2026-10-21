@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Phone, Menu, X, ArrowRight, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Shield, Phone, Menu, X, ArrowRight } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
 export default function Header({ currentScreen, setScreen, openQuoteModal }) {
@@ -103,51 +103,8 @@ export default function Header({ currentScreen, setScreen, openQuoteModal }) {
             ))}
           </div>
 
-          {/* Right Action & Screen Preview Selectors */}
+          {/* Right Action Button */}
           <div className="hidden sm:flex items-center gap-3">
-            {/* Screen Preview Badges */}
-            <div className="hidden xl:flex items-center gap-1.5 bg-surface border border-surfaceBorder rounded-full p-1 text-[11px] font-mono">
-              <button
-                onClick={() => setScreen('main')}
-                className={`px-2.5 py-1 rounded-full transition-all ${
-                  currentScreen === 'main' ? 'bg-fire text-white shadow-sm' : 'text-gray-400 hover:text-white'
-                }`}
-                title="View Main Homepage"
-              >
-                Main
-              </button>
-              <button
-                onClick={() => setScreen('loading')}
-                className={`px-2.5 py-1 rounded-full transition-all flex items-center gap-1 ${
-                  currentScreen === 'loading' ? 'bg-fire text-white shadow-sm' : 'text-gray-400 hover:text-white'
-                }`}
-                title="Figma Loading Screen"
-              >
-                <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                Loading
-              </button>
-              <button
-                onClick={() => setScreen('error')}
-                className={`px-2.5 py-1 rounded-full transition-all flex items-center gap-1 ${
-                  currentScreen === 'error' ? 'bg-amber-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
-                }`}
-                title="Figma Error Screen (404)"
-              >
-                <AlertTriangle className="w-2.5 h-2.5" />
-                Error
-              </button>
-              <button
-                onClick={() => setScreen('success')}
-                className={`px-2.5 py-1 rounded-full transition-all flex items-center gap-1 ${
-                  currentScreen === 'success' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
-                }`}
-                title="Figma Success Screen"
-              >
-                <CheckCircle className="w-2.5 h-2.5" />
-                Success
-              </button>
-            </div>
-
             <a
               href="#contact"
               onClick={() => {
@@ -175,33 +132,6 @@ export default function Header({ currentScreen, setScreen, openQuoteModal }) {
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
           <div className="sm:hidden px-4 pt-3 pb-6 bg-[#0E131F] border-b border-surfaceBorder space-y-3">
-            <div className="grid grid-cols-2 gap-2 pt-2 pb-3 border-b border-surfaceBorder/60">
-              <button
-                onClick={() => { setScreen('main'); setMobileMenuOpen(false); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono text-center ${currentScreen === 'main' ? 'bg-fire text-white' : 'bg-surfaceLight text-gray-300'}`}
-              >
-                Main Page
-              </button>
-              <button
-                onClick={() => { setScreen('loading'); setMobileMenuOpen(false); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono text-center ${currentScreen === 'loading' ? 'bg-fire text-white' : 'bg-surfaceLight text-gray-300'}`}
-              >
-                Loading Screen
-              </button>
-              <button
-                onClick={() => { setScreen('error'); setMobileMenuOpen(false); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono text-center ${currentScreen === 'error' ? 'bg-amber-600 text-white' : 'bg-surfaceLight text-gray-300'}`}
-              >
-                Error Screen (404)
-              </button>
-              <button
-                onClick={() => { setScreen('success'); setMobileMenuOpen(false); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono text-center ${currentScreen === 'success' ? 'bg-emerald-600 text-white' : 'bg-surfaceLight text-gray-300'}`}
-              >
-                Success Screen
-              </button>
-            </div>
-
             <div className="flex flex-col space-y-2">
               {navLinks.map((link) => (
                 <a

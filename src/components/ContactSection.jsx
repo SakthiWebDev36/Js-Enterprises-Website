@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, Send, ShieldAlert, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, ShieldAlert, CheckCircle, RefreshCw } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
 // Backend API base URL — points to local dev server; override in production with env var
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function ContactSection({ onFormSuccess, onFormError }) {
+export default function ContactSection({ onFormStart, onFormSuccess, onFormError }) {
+// State for form fields
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -16,7 +17,6 @@ export default function ContactSection({ onFormSuccess, onFormError }) {
     scope: '',
   });
 
-  const [simulateError, setSimulateError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -37,21 +37,9 @@ export default function ContactSection({ onFormSuccess, onFormError }) {
       return;
     }
 
+    if (onFormStart) onFormStart();
     setSubmitting(true);
     setErrorMsg('');
-
-    // Simulate network error for testing Figma Error Screen
-    if (simulateError) {
-      setTimeout(() => {
-        setSubmitting(false);
-        onFormError({
-          errorType: 'DISPATCH_TIMEOUT',
-          message: 'Primary telemetry route timed out during emergency dispatch request.',
-          retryPayload: formData,
-        });
-      }, 1200);
-      return;
-    }
 
     try {
       const response = await fetch(`${API_BASE}/api/consultations`, {
@@ -309,23 +297,6 @@ export default function ContactSection({ onFormSuccess, onFormError }) {
                     onChange={handleChange}
                     className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-600 transition-all resize-none"
                   ></textarea>
-                </div>
-
-                {/* Test toggle for reviewer/user */}
-                <div className="pt-2 flex items-center justify-between text-xs font-mono text-gray-400 bg-[#080B11] p-3 rounded-xl border border-surfaceBorder">
-                  <label htmlFor="sim-error" className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      id="sim-error"
-                      type="checkbox"
-                      checked={simulateError}
-                      onChange={(e) => setSimulateError(e.target.checked)}
-                      className="rounded bg-surface border-surfaceBorder text-fire focus:ring-fire"
-                    />
-                    <span>Simulate Network Failure (Tests Figma Error Screen)</span>
-                  </label>
-                  <span className={`px-2 py-0.5 rounded text-[10px] ${simulateError ? 'bg-amber-900/40 text-amber-300 border border-amber-600/50' : 'bg-surface text-gray-500'}`}>
-                    {simulateError ? 'MODE: ERROR TEST' : 'MODE: NORMAL'}
-                  </span>
                 </div>
 
                 {/* Submit button */}

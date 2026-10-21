@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Uploads and generated receipts
+server/data/sent_receipts/
+
