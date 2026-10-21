@@ -6,7 +6,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { generateConsultationPdf } from '../utils/generatePdfReceipt';
 
-export default function SuccessScreen({ ticketData, onReturnHome }) {
+export default function SuccessScreen({ ticketData, data, onReturnHome }) {
+  const ticket = ticketData || data || {};
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function SuccessScreen({ ticketData, onReturnHome }) {
   const handleDownloadPdf = async () => {
     try {
       setDownloadingPdf(true);
-      await generateConsultationPdf(ticketData);
+      await generateConsultationPdf(ticket);
     } catch (err) {
       console.error('Error generating PDF:', err);
     } finally {
@@ -69,7 +70,7 @@ export default function SuccessScreen({ ticketData, onReturnHome }) {
           {/* Reference Banner */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-600/50 text-xs font-mono text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>SUBMISSION LOGGED / REF: {ticketData?.refId || 'JSE-2026-9481'}</span>
+            <span>SUBMISSION LOGGED / REF: {ticket?.refId || 'JSE-2026-9481'}</span>
           </div>
 
           {/* Glowing Green Shield Icon */}
@@ -114,7 +115,7 @@ export default function SuccessScreen({ ticketData, onReturnHome }) {
             <div className="p-3.5 rounded-xl bg-[#080B11] border border-surfaceBorder/60">
               <span className="text-[10px] font-mono text-gray-500 block uppercase">Reference ID</span>
               <span className="text-sm font-mono font-bold text-white mt-0.5 block">
-                {ticketData?.refId || 'JSE-2026-9481'}
+                {ticket?.refId || 'JSE-2026-9481'}
               </span>
             </div>
 
@@ -128,7 +129,7 @@ export default function SuccessScreen({ ticketData, onReturnHome }) {
             <div className="p-3.5 rounded-xl bg-[#080B11] border border-surfaceBorder/60">
               <span className="text-[10px] font-mono text-gray-500 block uppercase">Contact Person</span>
               <span className="text-sm font-semibold text-white mt-0.5 block truncate">
-                {ticketData?.name || 'Designated Contact'}
+                {ticket?.name || 'Designated Contact'}
               </span>
             </div>
 

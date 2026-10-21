@@ -41,7 +41,12 @@ export default function App() {
           <ErrorScreen
             errorDetails={screenData}
             onReturnHome={() => setScreen('main')}
-            onRetry={() => setScreen('loading')}
+            onRetry={() => {
+              setScreen('main');
+              setTimeout(() => {
+                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+              }, 150);
+            }}
           />
         );
       case 'success':
