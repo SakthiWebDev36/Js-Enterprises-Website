@@ -35,16 +35,16 @@ export default function ErrorScreen({ onReturnHome, onRetry, errorDetails }) {
             {/* Status Alert Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-950/40 border border-red-700/60 text-xs font-mono text-red-400">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-              <span>CRITICAL ALERT / CODE: 404</span>
+              <span>{errorDetails?.errorType === 'NETWORK_ERROR' ? 'DISPATCH ALERT / CODE: 503' : 'CRITICAL ALERT / CODE: 404'}</span>
             </div>
 
-            {/* Giant 404 */}
+            {/* Giant Error Code */}
             <div className="text-7xl sm:text-8xl lg:text-9xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-gray-400 to-red-500 font-mono leading-none select-none">
-              404
+              {errorDetails?.errorType === 'NETWORK_ERROR' ? '503' : '404'}
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Fire Line Disconnected, Page Not Found.
+              {errorDetails?.errorType === 'NETWORK_ERROR' ? 'Fire Line Alert, Dispatch Paused.' : 'Fire Line Disconnected, Page Not Found.'}
             </h1>
 
             <p className="text-sm sm:text-base text-gray-300 max-w-xl leading-relaxed">

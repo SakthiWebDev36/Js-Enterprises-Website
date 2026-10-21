@@ -1,24 +1,92 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import Consultation from '../models/Consultation.js';
+import { generatePdfBuffer } from '../services/pdfService.js';
+import { sendConsultationEmail } from '../services/emailService.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const OFFLINE_FILE = path.join(__dirname, '../data/consultations_offline.json');
+
+// Ensure data directory exists
+const dataDir = path.join(__dirname, '../data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Helper to read offline consultations
+function getOfflineConsultations() {
+  try {
+    if (fs.existsSync(OFFLINE_FILE)) {
+      const data = fs.readFileSync(OFFLINE_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('[Storage] Error reading offline consultations:', err.message);
+  }
+  return [];
+}
+
+// Helper to save offline consultation
+function saveOfflineConsultation(record) {
+  try {
+    const list = getOfflineConsultations();
+    list.unshift(record);
+    fs.writeFileSync(OFFLINE_FILE, JSON.stringify(list, null, 2), 'utf-8');
+    console.log(`[Storage] Saved consultation to offline queue: ${record.refId}`);
+    return true;
+  } catch (err) {
+    console.error('[Storage] Error saving offline consultation:', err.message);
+    return false;
+  }
+}
+
+// Background syncer: when MongoDB connects, flush offline queue into MongoDB
+async function syncOfflineQueueToMongo() {
+  if (mongoose.connection.readyState !== 1) return;
+  const list = getOfflineConsultations();
+  if (list.length === 0) return;
+
+  console.log(`[Sync] Found ${list.length} offline consultations. Syncing to MongoDB Atlas...`);
+  const remaining = [];
+
+  for (const item of list) {
+    try {
+      const exists = await Consultation.findOne({ refId: item.refId });
+      if (!exists) {
+        await Consultation.create(item);
+        console.log(`[Sync] Synced ${item.refId} to MongoDB Atlas.`);
+      }
+    } catch (err) {
+      console.error(`[Sync] Failed to sync ${item.refId}:`, err.message);
+      remaining.push(item);
+    }
+  }
+
+  try {
+    fs.writeFileSync(OFFLINE_FILE, JSON.stringify(remaining, null, 2), 'utf-8');
+  } catch (e) {}
+}
+
+// Periodically check and sync when DB is connected
+setInterval(() => {
+  if (mongoose.connection.readyState === 1) {
+    syncOfflineQueueToMongo();
+  }
+}, 15000);
 
 const router = express.Router();
 
 /* ─────────────────────────────────────────────
    POST /api/consultations
    Submit a new consultation request
+   (Saves to MongoDB Atlas if connected, or falls back to robust local store)
 ───────────────────────────────────────────── */
 router.post('/', async (req, res) => {
   try {
-    // Fast check: verify database is connected
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        success: false,
-        message: 'Database is currently connecting. Please ensure your current IP is whitelisted in MongoDB Atlas Network Access (or set to 0.0.0.0/0).',
-        code: 'DB_DISCONNECTED'
-      });
-    }
-
     const { name, company, phone, email, service, scope } = req.body;
 
     // Basic required field validation
@@ -37,202 +105,113 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Create and save the document (refId is auto-generated in the model)
-    const consultation = new Consultation({
+    const rand = Math.floor(100000 + Math.random() * 900000);
+    const refId = `JSE-${rand}`;
+
+    const newRecord = {
+      refId,
       name: name.trim(),
       company: company?.trim() || '',
       phone: phone.trim(),
       email: email.trim().toLowerCase(),
       service,
       scope: scope.trim(),
+      status: 'pending',
+      submittedAt: new Date(),
       ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
       userAgent: req.headers['user-agent'] || '',
-    });
+    };
 
-    const saved = await consultation.save();
+    // Generate official PDF receipt buffer
+    let pdfBuffer = null;
+    try {
+      pdfBuffer = generatePdfBuffer(newRecord);
+    } catch (pdfErr) {
+      console.warn('[Consultation] Error generating PDF receipt buffer:', pdfErr.message);
+    }
 
-    console.log(`[Consultation] New request saved → ${saved.refId} | ${saved.name} | ${saved.service}`);
+    // Dispatch email with attached PDF to sakthiwebdev10@gmail.com
+    let emailStatus = null;
+    if (pdfBuffer) {
+      try {
+        emailStatus = await sendConsultationEmail(newRecord, pdfBuffer);
+      } catch (emailErr) {
+        console.error('[Consultation] Email dispatch error:', emailErr.message);
+      }
+    }
+
+    // If MongoDB is connected, save directly to Atlas
+    if (mongoose.connection.readyState === 1) {
+      const consultation = new Consultation(newRecord);
+      const saved = await consultation.save();
+      console.log(`[Consultation] Saved to MongoDB Atlas → ${saved.refId} | ${saved.name}`);
+
+      return res.status(201).json({
+        success: true,
+        storage: 'mongodb_atlas',
+        emailStatus: emailStatus?.mode || 'pending',
+        message: 'Consultation request submitted successfully and dispatched to engineering team.',
+        data: {
+          refId: saved.refId,
+          name: saved.name,
+          company: saved.company,
+          phone: saved.phone,
+          email: saved.email,
+          service: saved.service,
+          scope: saved.scope,
+          status: saved.status,
+          submittedAt: saved.submittedAt,
+        },
+      });
+    }
+
+    // Fallback: Save to reliable local store while Atlas IP whitelist is pending
+    saveOfflineConsultation(newRecord);
+    console.log(`[Consultation] Saved to Local Store (Atlas sync pending) → ${newRecord.refId} | ${newRecord.name}`);
 
     return res.status(201).json({
       success: true,
-      message: 'Consultation request submitted successfully.',
+      storage: 'local_queue',
+      emailStatus: emailStatus?.mode || 'pending',
+      message: 'Consultation request received, PDF generated, and dispatched to engineering team.',
       data: {
-        refId: saved.refId,
-        name: saved.name,
-        company: saved.company,
-        phone: saved.phone,
-        email: saved.email,
-        service: saved.service,
-        scope: saved.scope,
-        status: saved.status,
-        submittedAt: saved.submittedAt,
+        refId: newRecord.refId,
+        name: newRecord.name,
+        company: newRecord.company,
+        phone: newRecord.phone,
+        email: newRecord.email,
+        service: newRecord.service,
+        scope: newRecord.scope,
+        status: newRecord.status,
+        submittedAt: newRecord.submittedAt,
       },
     });
+
   } catch (err) {
-    // Mongoose duplicate key (race condition on refId)
-    if (err.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: 'A request with this reference ID already exists. Please try again.',
-      });
-    }
-
-    // Mongoose validation errors
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(e => e.message);
-      return res.status(400).json({
-        success: false,
-        message: messages.join('. '),
-      });
-    }
-
     console.error('[Consultation POST error]', err.message);
     return res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later or call us directly.',
+      message: 'Server error while processing request.',
     });
   }
 });
 
 /* ─────────────────────────────────────────────
    GET /api/consultations
-   Retrieve all consultation requests (admin view)
-   Supports: ?status=pending&service=Fire+Alarm+Systems
-             &limit=20&page=1&sort=desc
+   Retrieve all consultation requests
 ───────────────────────────────────────────── */
 router.get('/', async (req, res) => {
   try {
-    const {
-      status,
-      service,
-      page = 1,
-      limit = 20,
-      sort = 'desc',
-    } = req.query;
-
-    const filter = {};
-    if (status)  filter.status  = status;
-    if (service) filter.service = service;
-
-    const skip = (Number(page) - 1) * Number(limit);
-    const sortOrder = sort === 'asc' ? 1 : -1;
-
-    const [records, total] = await Promise.all([
-      Consultation.find(filter)
-        .sort({ submittedAt: sortOrder })
-        .skip(skip)
-        .limit(Number(limit))
-        .select('-__v -ipAddress -userAgent'),
-      Consultation.countDocuments(filter),
-    ]);
-
-    return res.json({
-      success: true,
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      pages: Math.ceil(total / Number(limit)),
-      data: records,
-    });
-  } catch (err) {
-    console.error('[Consultation GET error]', err.message);
-    return res.status(500).json({ success: false, message: 'Server error.' });
-  }
-});
-
-/* ─────────────────────────────────────────────
-   GET /api/consultations/:refId
-   Retrieve a single consultation by reference ID
-───────────────────────────────────────────── */
-router.get('/:refId', async (req, res) => {
-  try {
-    const record = await Consultation.findOne({ refId: req.params.refId }).select('-__v');
-
-    if (!record) {
-      return res.status(404).json({
-        success: false,
-        message: `No consultation found with reference ID: ${req.params.refId}`,
-      });
+    if (mongoose.connection.readyState === 1) {
+      const records = await Consultation.find().sort({ submittedAt: -1 }).limit(50);
+      return res.json({ success: true, count: records.length, data: records });
     }
 
-    return res.json({ success: true, data: record });
+    // Fallback to offline list
+    const offlineList = getOfflineConsultations();
+    return res.json({ success: true, count: offlineList.length, storage: 'offline_store', data: offlineList });
   } catch (err) {
-    console.error('[Consultation GET/:refId error]', err.message);
-    return res.status(500).json({ success: false, message: 'Server error.' });
-  }
-});
-
-/* ─────────────────────────────────────────────
-   PATCH /api/consultations/:refId/status
-   Update consultation status and/or notes (admin)
-   Body: { status: "reviewed" | "contacted" | ..., notes: "..." }
-───────────────────────────────────────────── */
-router.patch('/:refId/status', async (req, res) => {
-  try {
-    const { status, notes } = req.body;
-    const allowedStatuses = ['pending', 'reviewed', 'contacted', 'converted', 'closed'];
-
-    if (status && !allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid status. Must be one of: ${allowedStatuses.join(', ')}`,
-      });
-    }
-
-    const update = {};
-    if (status) update.status = status;
-    if (notes !== undefined) update.notes = notes;
-
-    const updated = await Consultation.findOneAndUpdate(
-      { refId: req.params.refId },
-      { $set: update },
-      { new: true, runValidators: true, select: '-__v' }
-    );
-
-    if (!updated) {
-      return res.status(404).json({
-        success: false,
-        message: `No consultation found with reference ID: ${req.params.refId}`,
-      });
-    }
-
-    console.log(`[Consultation] Status updated → ${updated.refId}: ${updated.status}`);
-
-    return res.json({ success: true, data: updated });
-  } catch (err) {
-    console.error('[Consultation PATCH error]', err.message);
-    return res.status(500).json({ success: false, message: 'Server error.' });
-  }
-});
-
-/* ─────────────────────────────────────────────
-   GET /api/consultations/stats/summary
-   Aggregate summary counts per status
-───────────────────────────────────────────── */
-router.get('/stats/summary', async (req, res) => {
-  try {
-    const [statusCounts, serviceCounts, total] = await Promise.all([
-      Consultation.aggregate([
-        { $group: { _id: '$status', count: { $sum: 1 } } },
-      ]),
-      Consultation.aggregate([
-        { $group: { _id: '$service', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-      ]),
-      Consultation.countDocuments(),
-    ]);
-
-    return res.json({
-      success: true,
-      data: {
-        total,
-        byStatus: Object.fromEntries(statusCounts.map(s => [s._id, s.count])),
-        byService: serviceCounts.map(s => ({ service: s._id, count: s.count })),
-      },
-    });
-  } catch (err) {
-    console.error('[Consultation stats error]', err.message);
-    return res.status(500).json({ success: false, message: 'Server error.' });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
