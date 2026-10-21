@@ -1,0 +1,142 @@
+[
+  {
+    "id": "site-1",
+    "title": "Industrial Hydrant Piping & Risers",
+    "category": "Hydrant Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/JS-Enterprises-1-1030x588.jpeg",
+    "filename": "site-hydrant-piping.jpg",
+    "desc": "Heavy-duty carbon steel wet riser hydrant line fabricated on-site in Chennai industrial facility.",
+    "localPath": "/photos/site-hydrant-piping.jpg",
+    "fileSize": 124747
+  },
+  {
+    "id": "site-2",
+    "title": "Automatic Sprinkler Grid Installation",
+    "category": "Sprinkler Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/JS-Enterprises-4-1030x773.jpeg",
+    "filename": "site-sprinkler-grid.jpg",
+    "desc": "Overhead sprinkler grid line installation with calibrated quartzoid thermal heads.",
+    "localPath": "/photos/site-sprinkler-grid.jpg",
+    "fileSize": 161224
+  },
+  {
+    "id": "site-3",
+    "title": "Fire Hose Cabinet & Landing Valve",
+    "category": "Hydrant Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/JS-Enterprises-6-1030x476.jpeg",
+    "filename": "site-hose-cabinet.jpg",
+    "desc": "Wall-recessed fire hose cabinet with internal single landing valve and quick-deployment canvas hose reel.",
+    "localPath": "/photos/site-hose-cabinet.jpg",
+    "fileSize": 67289
+  },
+  {
+    "id": "site-4",
+    "title": "Main Riser Ring Main Network",
+    "category": "Hydrant Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/JS-Enterprises-7-1030x475.jpeg",
+    "filename": "site-riser-ring.jpg",
+    "desc": "Hydro-tested ring main riser piping with pressure relief valves conforming to IS:3844 standards.",
+    "localPath": "/photos/site-riser-ring.jpg",
+    "fileSize": 120433
+  },
+  {
+    "id": "site-5",
+    "title": "Fire Suppression Distribution Header",
+    "category": "Suppression Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/JS-Enterprises-8-1030x582.jpeg",
+    "filename": "site-header-piping.jpg",
+    "desc": "Fabricated suppression manifold piping connecting booster pumps to internal factory fire lines.",
+    "localPath": "/photos/site-header-piping.jpg",
+    "fileSize": 112368
+  },
+  {
+    "id": "site-6",
+    "title": "Factory Floor Egress Fire Extinguishers",
+    "category": "Fire Extinguishers",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/JS-Enterprises-10-1030x477.jpeg",
+    "filename": "site-extinguishers-deployed.jpg",
+    "desc": "Certified ABC dry powder and CO2 units deployed at designated factory emergency egress points.",
+    "localPath": "/photos/site-extinguishers-deployed.jpg",
+    "fileSize": 122289
+  },
+  {
+    "id": "prod-1",
+    "title": "Addressable Fire Alarm Console",
+    "category": "Fire Alarm Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Addersable-Alaram-1.jpg",
+    "filename": "equip-addressable-alarm.jpg",
+    "desc": "Intelligent multi-loop addressable fire alarm panel with digital zone telemetry and battery backup.",
+    "localPath": "/photos/equip-addressable-alarm.jpg",
+    "fileSize": 68294
+  },
+  {
+    "id": "prod-2",
+    "title": "Conventional Multi-Zone Alarm Panel",
+    "category": "Fire Alarm Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Conversational-Alarm-2-1.jpg",
+    "filename": "equip-conventional-alarm.jpg",
+    "desc": "Microprocessor-based multi-zone conventional alarm console with zone fault indicators.",
+    "localPath": "/photos/equip-conventional-alarm.jpg",
+    "fileSize": 60032
+  },
+  {
+    "id": "prod-3",
+    "title": "Heavy Duty Landing Hydrant Valve",
+    "category": "Hydrant Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Fire-Hydrant.jpg",
+    "filename": "equip-hydrant-valve.jpg",
+    "desc": "Corrosion-resistant gunmetal oblique landing valve with instantaneous female coupling.",
+    "localPath": "/photos/equip-hydrant-valve.jpg",
+    "fileSize": 82341
+  },
+  {
+    "id": "prod-4",
+    "title": "Drum Hose Reel Suppression Unit",
+    "category": "Hydrant Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Hose-Reel-System.jpg",
+    "filename": "equip-hose-reel.jpg",
+    "desc": "Swivel-type manual swinging fire hose reel with high-pressure reinforced PVC braided hose.",
+    "localPath": "/photos/equip-hose-reel.jpg",
+    "fileSize": 66737
+  },
+  {
+    "id": "prod-5",
+    "title": "Automatic Pendant Fire Sprinkler",
+    "category": "Sprinkler Systems",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Springle.jpg",
+    "filename": "equip-sprinkler-head.jpg",
+    "desc": "Brass quick-response automatic sprinkler head with red thermal quartzoid glass bulb.",
+    "localPath": "/photos/equip-sprinkler-head.jpg",
+    "fileSize": 51801
+  },
+  {
+    "id": "prod-6",
+    "title": "Clean Agent / HFC Extinguisher",
+    "category": "Fire Extinguishers",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Clean-Agent.jpg",
+    "filename": "equip-clean-agent.jpg",
+    "desc": "Residue-free clean agent fire extinguisher ideal for electrical rooms, server rooms, and data centers.",
+    "localPath": "/photos/equip-clean-agent.jpg",
+    "fileSize": 66995
+  },
+  {
+    "id": "prod-7",
+    "title": "CO2 High-Pressure Extinguisher",
+    "category": "Fire Extinguishers",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/CO2.jpg",
+    "filename": "equip-co2.jpg",
+    "desc": "Seamless manganese steel carbon dioxide extinguisher with discharge horn for electrical fires.",
+    "localPath": "/photos/equip-co2.jpg",
+    "fileSize": 51442
+  },
+  {
+    "id": "prod-8",
+    "title": "ABC Stored Pressure Dry Powder",
+    "category": "Fire Extinguishers",
+    "url": "https://www.jsenterpriseschennai.com/wp-content/uploads/2024/05/Dry-Powder.jpg",
+    "filename": "equip-dry-powder.jpg",
+    "desc": "Multi-purpose dry chemical powder extinguisher effective against Class A, B, and C fire risks.",
+    "localPath": "/photos/equip-dry-powder.jpg",
+    "fileSize": 83521
+  }
+]
