@@ -101,6 +101,7 @@ export default function Services() {
                   <div className="pt-5 border-t border-surfaceBorder/60 flex items-center justify-between">
                     <button
                       onClick={() => setActiveModal(service)}
+                      aria-label={`View technical specifications for ${service.title}`}
                       className="inline-flex items-center gap-2 text-sm font-semibold text-fire hover:text-red-400 transition-colors"
                     >
                       <span>View Technical Specifications</span>
@@ -129,6 +130,7 @@ export default function Services() {
               {/* Close Button */}
               <button
                 onClick={() => setActiveModal(null)}
+                aria-label="Close specifications modal"
                 className="absolute top-5 right-5 p-2 rounded-lg bg-surface border border-surfaceBorder text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />

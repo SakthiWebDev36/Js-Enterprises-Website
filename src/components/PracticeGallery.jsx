@@ -63,6 +63,7 @@ export default function PracticeGallery() {
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
+              aria-label={`Filter by ${f.label}`}
               className={`px-4 py-2 rounded-xl text-xs font-mono transition-all ${
                 activeFilter === f.id
                   ? 'bg-fire text-white shadow-lg shadow-fire/25 font-semibold'
@@ -88,12 +89,24 @@ export default function PracticeGallery() {
               {/* Photo Image Container */}
               <div 
                 className="relative w-full h-52 bg-[#05070B] overflow-hidden cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label={`Open photo preview: ${photo.title}`}
                 onClick={() => setSelectedPhotoIndex(idx)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedPhotoIndex(idx);
+                  }
+                }}
               >
                 <img
                   src={photo.image}
                   alt={photo.title}
                   loading="lazy"
+                  width="400"
+                  height="208"
+                  decoding="async"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0E131F] via-transparent to-black/30"></div>
@@ -134,6 +147,7 @@ export default function PracticeGallery() {
                   </span>
                   <button
                     onClick={() => setSelectedPhotoIndex(idx)}
+                    aria-label={`View photo details for ${photo.title}`}
                     className="text-fire hover:text-red-400 font-semibold underline underline-offset-2 shrink-0"
                   >
                     View
@@ -195,6 +209,7 @@ export default function PracticeGallery() {
                 </div>
                 <button
                   onClick={() => setSelectedPhotoIndex(null)}
+                  aria-label="Close photo preview"
                   className="p-1.5 rounded-lg bg-surface border border-surfaceBorder text-gray-400 hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -206,18 +221,23 @@ export default function PracticeGallery() {
                 <img
                   src={activePhoto.image}
                   alt={activePhoto.title}
+                  width="800"
+                  height="500"
+                  decoding="async"
                   className="max-h-full max-w-full object-contain"
                 />
 
                 {/* Prev / Next Navigation Arrows */}
                 <button
                   onClick={handlePrev}
+                  aria-label="Previous photo"
                   className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-fire transition-colors"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
                 <button
                   onClick={handleNext}
+                  aria-label="Next photo"
                   className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-fire transition-colors"
                 >
                   <ChevronRight className="w-6 h-6" />

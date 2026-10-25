@@ -5,6 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    modulePreload: {
+      resolveDependencies: (filename, deps) => {
+        // Exclude heavy 3D WebGL engine and screens from initial critical modulepreload
+        return deps.filter(dep => !dep.includes('vendor-three') && !dep.includes('FireExtinguisher3D'));
+      }
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -14,7 +22,7 @@ export default defineConfig({
         }
       }
     },
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1200
   },
   server: {
     port: 5173,

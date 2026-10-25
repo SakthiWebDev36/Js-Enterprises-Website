@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, Send, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, AlertCircle } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
 // Backend API base URL — points to local dev server; override in production with env var
@@ -131,6 +131,7 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
                   <a
                     key={p.display}
                     href={`tel:${p.value}`}
+                    aria-label={`Call ${p.label}: ${p.display}`}
                     className="p-3 rounded-xl bg-surfaceLight border border-surfaceBorder hover:border-fire/60 text-xs font-mono text-gray-200 hover:text-white flex flex-col justify-between transition-all group"
                   >
                     <span className="text-[10px] text-gray-400 group-hover:text-fire transition-colors">
@@ -183,7 +184,7 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
                 <h3 className="text-xl font-bold text-white">
                   Request an Engineering Consultation
                 </h3>
-                <p className="text-xs text-gray-400 mt-1 font-mono">
+                <p className="text-xs text-gray-300 mt-1 font-mono">
                   Fill in your details below. Our technical desk responds within 2 business hours.
                 </p>
               </div>
@@ -200,32 +201,34 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Name */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-mono text-gray-300">
+                    <label htmlFor="consultation-name" className="text-xs font-mono text-gray-300">
                       Full Name <span className="text-fire">*</span>
                     </label>
                     <input
+                      id="consultation-name"
                       type="text"
                       name="name"
                       required
                       placeholder="e.g. R. Subramanian"
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-600 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-500 transition-all"
                     />
                   </div>
 
                   {/* Company */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-mono text-gray-300">
+                    <label htmlFor="consultation-company" className="text-xs font-mono text-gray-300">
                       Company / Facility Name
                     </label>
                     <input
+                      id="consultation-company"
                       type="text"
                       name="company"
                       placeholder="e.g. Apex Industrial Works"
                       value={formData.company}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-600 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-500 transition-all"
                     />
                   </div>
                 </div>
@@ -233,43 +236,46 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Phone */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-mono text-gray-300">
+                    <label htmlFor="consultation-phone" className="text-xs font-mono text-gray-300">
                       Contact Phone <span className="text-fire">*</span>
                     </label>
                     <input
+                      id="consultation-phone"
                       type="tel"
                       name="phone"
                       required
                       placeholder="+91 98400 00000"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-600 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-500 transition-all"
                     />
                   </div>
 
                   {/* Email */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-mono text-gray-300">
+                    <label htmlFor="consultation-email" className="text-xs font-mono text-gray-300">
                       Email Address <span className="text-fire">*</span>
                     </label>
                     <input
+                      id="consultation-email"
                       type="email"
                       name="email"
                       required
                       placeholder="contact@company.com"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-600 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-500 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Service Dropdown */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-gray-300">
+                  <label htmlFor="consultation-service" className="text-xs font-mono text-gray-300">
                     Primary Service Requirement <span className="text-fire">*</span>
                   </label>
                   <select
+                    id="consultation-service"
                     name="service"
                     value={formData.service}
                     onChange={handleChange}
@@ -285,30 +291,32 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
 
                 {/* Project Scope */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-gray-300">
+                  <label htmlFor="consultation-scope" className="text-xs font-mono text-gray-300">
                     Project Scope / Facility Dimensions <span className="text-fire">*</span>
                   </label>
                   <textarea
+                    id="consultation-scope"
                     rows={4}
                     name="scope"
                     required
                     placeholder="Briefly describe facility type, square footage, building height, or specific compliance audit needed..."
                     value={formData.scope}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-600 transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#080B11] border border-surfaceBorder focus:border-fire focus:ring-1 focus:ring-fire outline-none text-sm text-white placeholder-gray-500 transition-all resize-none"
                   ></textarea>
                 </div>
 
                 {/* Submit button */}
                 <button
                   type="submit"
+                  aria-label="Transmit Consultation Request"
                   className="w-full py-3.5 rounded-xl bg-fire hover:bg-red-600 active:scale-[0.99] text-white font-semibold text-sm shadow-xl shadow-fire/30 hover:shadow-fire/50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Transmit Consultation Request</span>
                   <Send className="w-4 h-4" />
                 </button>
 
-                <p className="text-center text-[11px] text-gray-500 font-mono pt-1">
+                <p className="text-center text-[11px] text-gray-400 font-mono pt-1">
                   Protected under industrial nondisclosure. Official dispatch response within 2 hours.
                 </p>
 
