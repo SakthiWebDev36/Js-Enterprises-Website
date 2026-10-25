@@ -360,11 +360,7 @@ export default function FireExtinguisher3D({ onLoaded }) {
       <div className="absolute inset-0 bg-subtle-grid opacity-30 pointer-events-none"></div>
 
       {/* Top HUD Telemetry */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0B0F19]/90 border border-surfaceBorder text-[11px] font-mono text-gray-300">
-          <span className="w-2 h-2 rounded-full bg-fire animate-ping"></span>
-          <span>INTERACTIVE 3D MODEL</span>
-        </div>
+      <div className="absolute top-4 right-4 flex items-center z-10 pointer-events-none">
         <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0B0F19]/90 border border-surfaceBorder text-[11px] font-mono text-emerald-400">
           <span>IS:15683 CERTIFIED</span>
         </div>
