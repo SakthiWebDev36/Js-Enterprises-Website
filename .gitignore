@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment files (contain secrets)
+.env
+server/.env
+
 # Uploads and generated receipts
 server/data/sent_receipts/
-
