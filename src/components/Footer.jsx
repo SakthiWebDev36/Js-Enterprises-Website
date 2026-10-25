@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Mail, MapPin, ArrowUp } from 'lucide-react';
+import { Shield, Phone, Mail, MapPin, ArrowUp } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
 export default function Footer() {
@@ -15,8 +15,8 @@ export default function Footer() {
           {/* Col 1: Brand & Identity */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-surfaceLight border border-surfaceBorder p-1 flex items-center justify-center">
-                <img src="/logo.png" alt="JS Enterprises Logo" className="w-full h-full object-contain" />
+              <div className="w-9 h-9 rounded-lg bg-fire/20 border border-fire/40 flex items-center justify-center text-fire">
+                <Shield className="w-5 h-5" />
               </div>
               <span className="text-lg font-bold text-white tracking-tight">
                 JS ENTERPRISES

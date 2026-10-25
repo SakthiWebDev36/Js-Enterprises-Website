@@ -83,7 +83,7 @@ const router = express.Router();
 /* ─────────────────────────────────────────────
    POST /api/consultations
    Submit a new consultation request
-   (Saves to MongoDB Atlas if connected, or falls back to robust local store)
+   (Saves immediately and dispatches email & PDF asynchronously in background)
 ───────────────────────────────────────────── */
 router.post('/', async (req, res) => {
   try {
@@ -105,8 +105,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const rand = Math.floor(100000 + Math.random() * 900000);
-    const refId = `JSE-${rand}`;
+    const refId = req.body.refId?.trim() || `JSE-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const newRecord = {
       refId,
@@ -122,23 +121,16 @@ router.post('/', async (req, res) => {
       userAgent: req.headers['user-agent'] || '',
     };
 
-    // Generate official PDF receipt buffer
-    let pdfBuffer = null;
-    try {
-      pdfBuffer = generatePdfBuffer(newRecord);
-    } catch (pdfErr) {
-      console.warn('[Consultation] Error generating PDF receipt buffer:', pdfErr.message);
-    }
-
-    // Dispatch email with attached PDF to sakthiwebdev10@gmail.com
-    let emailStatus = null;
-    if (pdfBuffer) {
+    // Asynchronous background dispatch of PDF and Email (does not block HTTP response)
+    setImmediate(async () => {
       try {
-        emailStatus = await sendConsultationEmail(newRecord, pdfBuffer);
+        const pdfBuffer = generatePdfBuffer(newRecord);
+        await sendConsultationEmail(newRecord, pdfBuffer);
+        console.log(`[Consultation] Background email successfully dispatched for ${refId}`);
       } catch (emailErr) {
-        console.error('[Consultation] Email dispatch error:', emailErr.message);
+        console.error(`[Consultation] Background email dispatch error for ${refId}:`, emailErr.message);
       }
-    }
+    });
 
     // If MongoDB is connected, save directly to Atlas
     if (mongoose.connection.readyState === 1) {
@@ -149,8 +141,8 @@ router.post('/', async (req, res) => {
       return res.status(201).json({
         success: true,
         storage: 'mongodb_atlas',
-        emailStatus: emailStatus?.mode || 'pending',
-        message: 'Consultation request submitted successfully and dispatched to engineering team.',
+        emailStatus: 'dispatched_in_background',
+        message: 'Consultation request submitted successfully.',
         data: {
           refId: saved.refId,
           name: saved.name,
@@ -172,8 +164,8 @@ router.post('/', async (req, res) => {
     return res.status(201).json({
       success: true,
       storage: 'local_queue',
-      emailStatus: emailStatus?.mode || 'pending',
-      message: 'Consultation request received, PDF generated, and dispatched to engineering team.',
+      emailStatus: 'dispatched_in_background',
+      message: 'Consultation request recorded and queued for background processing.',
       data: {
         refId: newRecord.refId,
         name: newRecord.name,

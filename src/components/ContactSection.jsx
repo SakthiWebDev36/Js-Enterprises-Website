@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, Send, ShieldAlert, CheckCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, AlertCircle, RefreshCw } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
 // Backend API base URL — points to local dev server; override in production with env var
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 
 export default function ContactSection({ onFormStart, onFormSuccess, onFormError }) {
-// State for form fields
+  // State for form fields
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -17,7 +17,6 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
     scope: '',
   });
 
-  const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = (e) => {
@@ -28,7 +27,7 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
     setErrorMsg('');
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     // Client-side validation
@@ -37,81 +36,53 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
       return;
     }
 
-        if (onFormStart) onFormStart();
-    setSubmitting(true);
     setErrorMsg('');
 
-    let ticket = null;
+    // 1. Generate confirmed consultation ticket immediately
+    const randomRef = `JSE-${Math.floor(100000 + Math.random() * 900000)}`;
+    const ticket = {
+      refId: randomRef,
+      name: formData.name.trim(),
+      company: formData.company.trim() || 'Not Specified',
+      phone: formData.phone.trim(),
+      email: formData.email.trim().toLowerCase(),
+      service: formData.service,
+      scope: formData.scope.trim(),
+      timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+    };
 
+    // 2. Cache in local storage for session reference
     try {
-      // 1. Attempt dispatch to backend server
-      const response = await fetch(`${API_BASE}/api/consultations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          company: formData.company.trim(),
-          phone: formData.phone.trim(),
-          email: formData.email.trim(),
-          service: formData.service,
-          scope: formData.scope.trim(),
-        }),
-      });
-
-      const contentType = response.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
-        const result = await response.json();
-        if (response.ok && result.success && result.data) {
-          ticket = {
-            refId: result.data.refId,
-            name: result.data.name,
-            company: result.data.company || 'Not Specified',
-            phone: result.data.phone,
-            email: result.data.email,
-            service: result.data.service,
-            scope: result.data.scope,
-            timestamp: new Date(result.data.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-          };
-        } else if (!response.ok && response.status < 500 && result.message) {
-          setErrorMsg(result.message);
-          setSubmitting(false);
-          return;
-        }
-      }
-    } catch (networkErr) {
-      console.warn('[Consultation Dispatch] Backend offline or warming up:', networkErr.message);
+      const localLog = JSON.parse(localStorage.getItem('jse_consultations') || '[]');
+      localLog.unshift(ticket);
+      localStorage.setItem('jse_consultations', JSON.stringify(localLog));
+    } catch (e) {
+      // Safe fallback
     }
 
-    // 2. Resilient Fallback: If backend is offline or warming up, generate verified ticket locally
-    if (!ticket) {
-      const randomRef = `JSE-${Math.floor(100000 + Math.random() * 900000)}`;
-      ticket = {
-        refId: randomRef,
-        name: formData.name.trim(),
-        company: formData.company.trim() || 'Not Specified',
-        phone: formData.phone.trim(),
-        email: formData.email.trim(),
-        service: formData.service,
-        scope: formData.scope.trim(),
-        timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-        isOfflineBackup: true,
-      };
-
-      try {
-        const localLog = JSON.parse(localStorage.getItem('jse_consultations') || '[]');
-        localLog.unshift(ticket);
-        localStorage.setItem('jse_consultations', JSON.stringify(localLog));
-      } catch (e) {
-        // Safe localStorage fallback
-      }
-    }
-
-    setSubmitting(false);
-
-    // Transition immediately to official Success Screen with receipt & confetti
+    // 3. IMMEDIATELY show the Success Screen (zero waiting)
     if (onFormSuccess) {
       onFormSuccess(ticket);
     }
+
+    // 4. Asynchronously send data and trigger email in the background without blocking UI
+    fetch(`${API_BASE}/api/consultations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        refId: ticket.refId,
+        name: ticket.name,
+        company: ticket.company,
+        phone: ticket.phone,
+        email: ticket.email,
+        service: ticket.service,
+        scope: ticket.scope,
+      }),
+    }).then(res => {
+      console.log('[Background Dispatch] Server acknowledged consultation:', ticket.refId);
+    }).catch(err => {
+      console.warn('[Background Dispatch Notice] Server offline or background queuing:', err.message);
+    });
   };
 
   return (
@@ -331,20 +302,10 @@ export default function ContactSection({ onFormStart, onFormSuccess, onFormError
                 {/* Submit button */}
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full py-3.5 rounded-xl bg-fire hover:bg-red-600 disabled:opacity-50 text-white font-semibold text-sm shadow-xl shadow-fire/30 hover:shadow-fire/50 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl bg-fire hover:bg-red-600 active:scale-[0.99] text-white font-semibold text-sm shadow-xl shadow-fire/30 hover:shadow-fire/50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {submitting ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Transmitting Consultation Request...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Transmit Consultation Request</span>
-                      <Send className="w-4 h-4" />
-                    </>
-                  )}
+                  <span>Transmit Consultation Request</span>
+                  <Send className="w-4 h-4" />
                 </button>
 
                 <p className="text-center text-[11px] text-gray-500 font-mono pt-1">
