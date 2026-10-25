@@ -13,14 +13,16 @@ if (!fs.existsSync(RECEIPTS_DIR)) {
 
 /**
  * Sends consultation notification email with the generated PDF receipt attached.
+ * Dispatches to both the operations desk (sakthiwebdev10@gmail.com, jsbsafety@gmail.com)
+ * AND sends an official acknowledgment copy to the client (ticketData.email).
+ * 
  * @param {Object} ticketData
  * @param {Buffer} pdfBuffer
  */
 export async function sendConsultationEmail(ticketData, pdfBuffer) {
-  const recipient = process.env.DISPATCH_EMAIL || 'sakthiwebdev10@gmail.com';
   const pdfFilename = `JS-Enterprises-Consultation-${ticketData.refId}.pdf`;
 
-  // Always save a copy to server/data/sent_receipts/
+  // Always save a local copy to server/data/sent_receipts/
   try {
     const localPdfPath = path.join(RECEIPTS_DIR, pdfFilename);
     fs.writeFileSync(localPdfPath, pdfBuffer);
@@ -29,11 +31,21 @@ export async function sendConsultationEmail(ticketData, pdfBuffer) {
     console.warn('[Email Service] Failed saving local receipt backup:', e.message);
   }
 
-  // Check if SMTP credentials exist
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
+  // Resilient SMTP credentials with fallback for cloud deployment (Render)
+  const emailUser = (process.env.EMAIL_USER || 'sakthishwaran961@gmail.com').trim();
+  const rawPass = (process.env.EMAIL_PASS || 'sucd brpw iboa rwie').trim();
+  const emailPass = rawPass.replace(/\s+/g, ''); // Ensure 16-char app password without spaces
 
-  const emailHtml = `
+  // Destination list: ensure both engineering admins receive the alert
+  const adminRecipients = [
+    'sakthiwebdev10@gmail.com',
+    'jsbsafety@gmail.com',
+    process.env.DISPATCH_EMAIL,
+  ].filter(Boolean);
+
+  const uniqueAdminRecipients = [...new Set(adminRecipients)].join(', ');
+
+  const adminEmailHtml = `
   <!DOCTYPE html>
   <html>
   <head>
@@ -66,9 +78,9 @@ export async function sendConsultationEmail(ticketData, pdfBuffer) {
       </div>
       <div class="body">
         <div class="badge">REF TICKET: ${ticketData.refId}</div>
-        <h2 class="title">New Consultation Request Dispatched</h2>
+        <h2 class="title">New Consultation Request Received</h2>
         <p class="intro">
-          A new fire safety consultation and on-site audit inquiry has been received through the website. The official PDF receipt is attached to this email.
+          A new fire safety consultation and on-site inspection request has been logged through the website.
         </p>
 
         <table class="details-table">
@@ -116,70 +128,124 @@ export async function sendConsultationEmail(ticketData, pdfBuffer) {
   </html>
   `;
 
-  // If no credentials, log the simulated dispatch with clear guidance
-  if (!emailUser || !emailPass) {
-    console.log('');
-    console.log('  ┌────────────────────────────────────────────────────────────────────────┐');
-    console.log(`  │ ✉ EMAIL DISPATCH LOGGED TO: ${recipient.padEnd(41)}│`);
-    console.log(`  │ ► Reference Ticket: ${ticketData.refId.padEnd(49)}│`);
-    console.log(`  │ ► Client Name:      ${ticketData.name.padEnd(49)}│`);
-    console.log(`  │ ► Service:          ${ticketData.service.padEnd(49)}│`);
-    console.log(`  │ ► Attached PDF:     ${pdfFilename.padEnd(49)}│`);
-    console.log('  │                                                                        │');
-    console.log('  │ To send LIVE real emails via Gmail SMTP, add to server/.env:           │');
-    console.log('  │   EMAIL_USER=yourgmail@gmail.com                                       │');
-    console.log('  │   EMAIL_PASS=xxxx xxxx xxxx xxxx (16-character Google App Password)    │');
-    console.log('  │   DISPATCH_EMAIL=sakthiwebdev10@gmail.com                              │');
-    console.log('  └────────────────────────────────────────────────────────────────────────┘');
-    console.log('');
-    return {
-      success: true,
-      mode: 'simulated_local',
-      recipient,
-      pdfFilename,
-      message: 'PDF generated and email dispatch logged locally.'
-    };
-  }
+  const clientEmailHtml = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f19; color: #f3f4f6; margin: 0; padding: 24px; }
+      .container { max-width: 600px; margin: 0 auto; background-color: #111625; border: 1px solid #1e283d; border-radius: 12px; overflow: hidden; }
+      .header { background-color: #0d121f; border-bottom: 2px solid #e6392f; padding: 20px 24px; }
+      .brand { font-size: 18px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; }
+      .subtitle { font-size: 11px; color: #94a3b8; font-family: monospace; text-transform: uppercase; margin-top: 2px; }
+      .body { padding: 24px; }
+      .badge { display: inline-block; background-color: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #10b981; font-family: monospace; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 6px; margin-bottom: 16px; }
+      .title { font-size: 20px; font-weight: bold; color: #ffffff; margin-top: 0; margin-bottom: 8px; }
+      .intro { font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px; }
+      .callout { background-color: rgba(230,57,47,0.1); border: 1px solid rgba(230,57,47,0.3); border-radius: 8px; padding: 14px 16px; color: #f87171; font-size: 12px; margin-bottom: 24px; line-height: 1.5; }
+      .footer { background-color: #090d16; border-top: 1px solid #1e283d; padding: 16px 24px; font-size: 11px; color: #64748b; font-family: monospace; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="brand">JS ENTERPRISES</div>
+        <div class="subtitle">Fire Safety Engineering • Chennai</div>
+      </div>
+      <div class="body">
+        <div class="badge">REFERENCE: ${ticketData.refId}</div>
+        <h2 class="title">Consultation Request Confirmed</h2>
+        <p class="intro">
+          Dear <strong>${ticketData.name}</strong>,<br><br>
+          Thank you for reaching out to JS Enterprises. Your consultation request for <strong>${ticketData.service}</strong> has been routed to our Chennai engineering operations desk.
+          Our field engineering team will review your requirements and reach out within 2 business hours.
+        </p>
 
-  // Live SMTP Transporter
+        <div class="callout">
+          <strong>Official Consultation Receipt:</strong><br>
+          Your official PDF consultation confirmation receipt (<strong>${pdfFilename}</strong>) is attached to this email for your records.
+        </div>
+      </div>
+      <div class="footer">
+        JS Enterprises • No. 16/35, Kamarajar Street, Srinivasa Nagar, Padi, Chennai - 600 055<br>
+        24/7 Hotline: +91 99416 46332 | Office: 044-26561223 | jsbsafety@gmail.com
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+
+  // Establish robust direct SSL connection via port 465
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: emailUser,
-        pass: emailPass
-      }
+        pass: emailPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
-    const info = await transporter.sendMail({
+    // 1. Dispatch notification to Operations Desk (sakthiwebdev10@gmail.com & jsbsafety@gmail.com)
+    const adminInfo = await transporter.sendMail({
       from: `"JS Enterprises Dispatch" <${emailUser}>`,
-      to: recipient,
+      to: uniqueAdminRecipients,
       subject: `[New Consultation] Ref: ${ticketData.refId} - ${ticketData.name} (${ticketData.service})`,
-      html: emailHtml,
+      html: adminEmailHtml,
       attachments: [
         {
           filename: pdfFilename,
           content: pdfBuffer,
-          contentType: 'application/pdf'
-        }
-      ]
+          contentType: 'application/pdf',
+        },
+      ],
     });
 
-    console.log(`[Email Service] Live email successfully dispatched to ${recipient}: ${info.messageId}`);
+    console.log(`[Email Service] Live email successfully dispatched to admin team (${uniqueAdminRecipients}): ${adminInfo.messageId}`);
+
+    // 2. Dispatch confirmation receipt to the client's email if valid
+    let clientInfo = null;
+    if (ticketData.email && ticketData.email.includes('@') && !ticketData.email.includes('example.com')) {
+      try {
+        clientInfo = await transporter.sendMail({
+          from: `"JS Enterprises Life Safety" <${emailUser}>`,
+          to: ticketData.email,
+          subject: `Consultation Request Received - Ref: ${ticketData.refId} | JS Enterprises`,
+          html: clientEmailHtml,
+          attachments: [
+            {
+              filename: pdfFilename,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            },
+          ],
+        });
+        console.log(`[Email Service] Confirmation receipt successfully dispatched to client (${ticketData.email}): ${clientInfo.messageId}`);
+      } catch (clientErr) {
+        console.warn(`[Email Service] Notice: Could not send client confirmation to ${ticketData.email}:`, clientErr.message);
+      }
+    }
+
     return {
       success: true,
       mode: 'live_smtp',
-      messageId: info.messageId,
-      recipient,
-      pdfFilename
+      adminMessageId: adminInfo.messageId,
+      clientMessageId: clientInfo ? clientInfo.messageId : null,
+      adminRecipients: uniqueAdminRecipients,
+      clientRecipient: ticketData.email,
+      pdfFilename,
     };
   } catch (err) {
-    console.error(`[Email Service] Failed sending live email to ${recipient}:`, err.message);
+    console.error(`[Email Service Error] Failed sending live email:`, err.message);
     return {
       success: false,
       error: err.message,
-      recipient,
-      pdfFilename
+      pdfFilename,
     };
   }
 }

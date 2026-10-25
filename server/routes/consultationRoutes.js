@@ -122,15 +122,15 @@ router.post('/', async (req, res) => {
     };
 
     // Asynchronous background dispatch of PDF and Email (does not block HTTP response)
-    setImmediate(async () => {
+    (async () => {
       try {
         const pdfBuffer = generatePdfBuffer(newRecord);
-        await sendConsultationEmail(newRecord, pdfBuffer);
-        console.log(`[Consultation] Background email successfully dispatched for ${refId}`);
+        const emailResult = await sendConsultationEmail(newRecord, pdfBuffer);
+        console.log(`[Consultation] Email dispatch completed for ${refId}:`, emailResult.success ? 'SUCCESS' : emailResult.error);
       } catch (emailErr) {
         console.error(`[Consultation] Background email dispatch error for ${refId}:`, emailErr.message);
       }
-    });
+    })();
 
     // If MongoDB is connected, save directly to Atlas
     if (mongoose.connection.readyState === 1) {
