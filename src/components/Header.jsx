@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Phone, Menu, X, ArrowRight } from 'lucide-react';
+import { Phone, Menu, X, ArrowRight } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
 export default function Header({ currentScreen, setScreen, openQuoteModal }) {
@@ -70,10 +70,8 @@ export default function Header({ currentScreen, setScreen, openQuoteModal }) {
             }}
             className="flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-fire to-red-800 p-0.5 flex items-center justify-center shadow-lg shadow-fire/20 group-hover:shadow-fire/40 transition-shadow">
-              <div className="w-full h-full bg-[#0E131F] rounded-[7px] flex items-center justify-center">
-                <Shield className="w-5 h-5 text-fire group-hover:scale-110 transition-transform" />
-              </div>
+            <div className="w-10 h-10 rounded-lg bg-surfaceLight border border-surfaceBorder p-1 flex items-center justify-center shadow-lg shadow-fire/10 group-hover:border-fire/50 transition-all">
+              <img src="/logo.png" alt="JS Enterprises Logo" className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
             </div>
             <div>
               <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">

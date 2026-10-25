@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Download, Home, Phone, ShieldCheck, ArrowRight, Clock, FileText, Check, FileDown, Loader2 } from 'lucide-react';
+import { CheckCircle2, Home, Clock, FileText } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { generateConsultationPdf } from '../utils/generatePdfReceipt';
 
 export default function SuccessScreen({ ticketData, data, onReturnHome }) {
   const ticket = ticketData || data || {};
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
+    // Scroll to top when success screen mounts
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
     // Elegant celebratory burst
     try {
       confetti({
@@ -23,17 +24,6 @@ export default function SuccessScreen({ ticketData, data, onReturnHome }) {
       // safe fallback
     }
   }, []);
-
-  const handleDownloadPdf = async () => {
-    try {
-      setDownloadingPdf(true);
-      await generateConsultationPdf(ticket);
-    } catch (err) {
-      console.error('Error generating PDF:', err);
-    } finally {
-      setDownloadingPdf(false);
-    }
-  };
 
   const projectStages = [
     {
@@ -90,7 +80,7 @@ export default function SuccessScreen({ ticketData, data, onReturnHome }) {
 
         </div>
 
-        {/* Dispatch Summary Ticket Card Matching Figma */}
+        {/* Dispatch Summary Ticket Card */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -162,24 +152,6 @@ export default function SuccessScreen({ ticketData, data, onReturnHome }) {
               <Home className="w-4 h-4" />
               <span>Return to Main Safety Hub</span>
             </button>
-
-            <button
-              onClick={handleDownloadPdf}
-              disabled={downloadingPdf}
-              className="px-6 py-3.5 rounded-xl bg-[#080B11] hover:bg-surfaceLight border border-surfaceBorder hover:border-fire/50 text-gray-200 hover:text-white font-medium text-sm transition-all flex items-center gap-2 active:scale-95 disabled:opacity-60 shadow-lg"
-            >
-              {downloadingPdf ? (
-                <>
-                  <Loader2 className="w-4 h-4 text-fire animate-spin" />
-                  <span>Generating Official PDF...</span>
-                </>
-              ) : (
-                <>
-                  <FileDown className="w-4 h-4 text-fire" />
-                  <span>Download Official PDF Receipt</span>
-                </>
-              )}
-            </button>
           </div>
 
           <p className="text-center text-[11px] font-mono text-gray-500 pt-1">
@@ -187,7 +159,7 @@ export default function SuccessScreen({ ticketData, data, onReturnHome }) {
           </p>
         </motion.div>
 
-        {/* "Lifecycle of Your Project" Section Matching Figma */}
+        {/* "Lifecycle of Your Project" Section */}
         <div className="space-y-6 relative z-10">
           <div className="text-left">
             <span className="text-xs font-mono text-fire font-bold tracking-wider uppercase block mb-1">
@@ -221,7 +193,7 @@ export default function SuccessScreen({ ticketData, data, onReturnHome }) {
       </main>
 
       {/* Footer */}
-      <Footer setScreen={() => {}} />
+      <Footer />
     </div>
   );
 }

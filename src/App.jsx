@@ -18,31 +18,35 @@ export default function App() {
   const [currentScreen, setScreen] = useState('main'); // main | loading | success | error
   const [screenData, setScreenData] = useState(null); // holds ticket info or error details
 
+  const navigateTo = (screen, data = null) => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    setScreenData(data);
+    setScreen(screen);
+  };
+
   const handleFormStart = () => {
-    setScreen('loading');
+    navigateTo('loading');
   };
 
   const handleFormSuccess = (ticket) => {
-    setScreenData(ticket);
-    setScreen('success');
+    navigateTo('success', ticket);
   };
 
   const handleFormError = (err) => {
-    setScreenData(err);
-    setScreen('error');
+    navigateTo('error', err);
   };
 
   const renderScreen = () => {
     switch (currentScreen) {
       case 'loading':
-        return <LoadingScreen onFinish={() => setScreen('main')} />;
+        return <LoadingScreen onFinish={() => navigateTo('main')} />;
       case 'error':
         return (
           <ErrorScreen
             errorDetails={screenData}
-            onReturnHome={() => setScreen('main')}
+            onReturnHome={() => navigateTo('main')}
             onRetry={() => {
-              setScreen('main');
+              navigateTo('main');
               setTimeout(() => {
                 document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
               }, 150);
@@ -51,12 +55,12 @@ export default function App() {
         );
       case 'success':
         return (
-          <SuccessScreen data={screenData} onReturnHome={() => setScreen('main')} />
+          <SuccessScreen data={screenData} onReturnHome={() => navigateTo('main')} />
         );
       default:
         return (
           <>
-            <Header currentScreen={currentScreen} setScreen={setScreen} />
+            <Header currentScreen={currentScreen} setScreen={navigateTo} />
             <main className="flex-1">
               <Hero />
               <About />
@@ -71,7 +75,7 @@ export default function App() {
                 onFormError={handleFormError}
               />
             </main>
-            <Footer setScreen={setScreen} />
+            <Footer />
           </>
         );
     }

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Shield, Phone, Mail, MapPin, ArrowUp, ExternalLink } from 'lucide-react';
+import { Phone, Mail, MapPin, ArrowUp } from 'lucide-react';
 import { companyData } from '../data/companyData';
 
-export default function Footer({ setScreen }) {
+export default function Footer() {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -15,8 +15,8 @@ export default function Footer({ setScreen }) {
           {/* Col 1: Brand & Identity */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-fire/20 border border-fire/40 flex items-center justify-center text-fire">
-                <Shield className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-lg bg-surfaceLight border border-surfaceBorder p-1 flex items-center justify-center">
+                <img src="/logo.png" alt="JS Enterprises Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-lg font-bold text-white tracking-tight">
                 JS ENTERPRISES
@@ -57,7 +57,7 @@ export default function Footer({ setScreen }) {
             </ul>
           </div>
 
-          {/* Col 3: Quick Links & Figma Screen Previews */}
+          {/* Col 3: Quick Links */}
           <div className="lg:col-span-2 space-y-3">
             <h4 className="text-xs font-mono uppercase tracking-wider text-white font-semibold">
               Quick Links
@@ -69,21 +69,6 @@ export default function Footer({ setScreen }) {
               <li><a href="#lifecycle" className="hover:text-white transition-colors">Lifecycle Process</a></li>
               <li><a href="#contact" className="hover:text-white transition-colors">Request Quote</a></li>
             </ul>
-
-            <div className="pt-3 border-t border-surfaceBorder/40">
-              <h5 className="text-[10px] font-mono uppercase text-gray-500 mb-1.5">Figma Screens</h5>
-              <div className="flex flex-col gap-1 text-xs font-mono">
-                <button onClick={() => setScreen('loading')} className="text-left text-gray-400 hover:text-fire transition-colors">
-                  → Loading Screen
-                </button>
-                <button onClick={() => setScreen('error')} className="text-left text-gray-400 hover:text-amber-400 transition-colors">
-                  → Error Screen (404)
-                </button>
-                <button onClick={() => setScreen('success')} className="text-left text-gray-400 hover:text-emerald-400 transition-colors">
-                  → Success Screen
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Col 4: Contact Info */}
